@@ -1,0 +1,22 @@
+INSERT INTO traditional.Country (country_code, name)
+VALUES
+    ('USA', 'United States of America'),
+    ('CAN', 'Canada'),
+    ('GBR', 'United Kingdom'),
+    ('FRA', 'France'),
+    ('GER', 'Germany'),
+    ('ITA', 'Italy'),
+    ('ESP', 'Spain'),
+    ('JPN', 'Japan'),
+    ('CHN', 'China'),
+    ('IND', 'India'),
+    ('EST', 'Estonia'),
+    ('RUS', 'Russia'),
+    ('AUS', 'Australia'),
+    ('BRA', 'Brazil'),
+    ('ARG', 'Argentina'),
+    ('MEX', 'Mexico'),
+    ('NZL', 'New Zealand'),
+    ('ZAF', 'South Africa'),
+    ('EGY', 'Egypt'),
+    ('NGA', 'Nigeria');
