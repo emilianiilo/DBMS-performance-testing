@@ -1,5 +1,6 @@
 SELECT
-    nat_id_code,
+   _id,
+	nat_id_code,
     country_code,
     person_status_type_code,
     e_mail,
@@ -40,4 +41,4 @@ LEFT JOIN
 LEFT JOIN
     traditional.employment em ON e.person_id = em.person_id
 GROUP BY
-    nat_id_code, country_code, person_status_type_code, e_mail, birth_date, reg_time, given_name, surname, address, tel_nr, e.employee_status_type_code, e.mentor_id;
+    _id, nat_id_code, country_code, person_status_type_code, e_mail, birth_date, reg_time, given_name, surname, address, tel_nr, e.employee_status_type_code, e.mentor_id;
