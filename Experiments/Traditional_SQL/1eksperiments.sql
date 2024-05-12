@@ -73,18 +73,16 @@ LEFT JOIN traditional.employee_status_type mest ON ment.employee_status_type_cod
 WHERE emp.employee_status_type_code <> ment.employee_status_type_code;
 
 --S6_1
-INSERT INTO traditional.person (nat_id_code, country_code, person_status_type_code, 
+INSERT INTO traditional.person (_id,nat_id_code, country_code, person_status_type_code, 
 e_mail, birth_date, given_name, surname, address, tel_nr)
-VALUES (1234567, 'USA', 3, 'example@example.com', 
+VALUES (5,1234567, 'USA', 3, 'example@example.com', 
 '1931-06-03', 'eesnimi', 'perekonnanimi', 'Random 123', '+1 553344');
 INSERT INTO traditional.employee (person_id, mentor_id, employee_status_type_code)
-VALUES ((SELECT _id FROM traditional.person
-ORDER BY _id DESC
-LIMIT 1), 4673567, 2);
+VALUES (5, 4673567, 2);
 
 --S6_2
 INSERT INTO traditional.employment (person_id, occupation_code, start_time)
-VALUES (4722148, 1, '2024-01-01');
+VALUES (5, 1, '2024-01-01');
 
 --S7_1
 UPDATE traditional.person
