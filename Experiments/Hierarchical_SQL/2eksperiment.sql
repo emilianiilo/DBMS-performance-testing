@@ -44,15 +44,13 @@ GROUP BY c.country_code;
 SELECT 
     o.occupation_code, 
     (o.data ->> 'name') AS occupation_name, 
-    COUNT(p._id) AS employment_count,
-    AVG((employee.value ->> 'end_time')::date - (employee.value ->> 'start_time')::date) AS avg_duration_days
+    COUNT(sub.employee ->> 'occupation_code') FILTER (WHERE sub.employee ->> 'occupation_code' IS NOT NULL) AS employment_count,
+    AVG((sub.employee ->> 'end_time')::date - (sub.employee ->> 'start_time')::date) FILTER (WHERE sub.employee ->> 'start_time' IS NOT NULL AND sub.employee ->> 'end_time' IS NOT NULL) AS avg_duration_days
 FROM 
-    hierarchical.person p, 
-    jsonb_array_elements(p.employee -> 'employment') employee 
-LEFT JOIN 
-    hierarchical.occupation o ON o.occupation_code = (employee ->> 'occupation_code')::int
-WHERE 
-    (employee.value ->> 'start_time') IS NOT NULL AND (employee.value ->> 'end_time') IS NOT NULL
+    hierarchical.occupation o 
+LEFT JOIN LATERAL 
+    (SELECT p._id, jsonb_array_elements(p.employee -> 'employment') AS employee 
+     FROM hierarchical.person p) sub ON o.occupation_code = (sub.employee ->> 'occupation_code')::int
 GROUP BY 
     o.occupation_code, (o.data ->> 'name');
 
