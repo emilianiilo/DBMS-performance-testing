@@ -11,41 +11,39 @@ db.person.find({
 }).sort({
     birth_date: 1,
     e_mail: 1
-})
+});
 
 //1_2
-db.employment.aggregate([{
-    $match: {
-      "start_time": {
-        $gte: ISODate("2020-01-01"),
-        $lte: ISODate("2022-12-31")
-      },
-      "end_time": { $exists: true }
-    }
-  },
-  {
-    $lookup: {
-      from: "occupation",
-      localField: "occupation_code",
-      foreignField: "occupation_code",
-      as: "occupation"
-    }
-  },
-  {
-    $project: {
-      _id: 0,
-      person_id: 1,
-      "occupation.name": 1,
-      start_year: { $year: "$start_time" },
-      end_year: { $year: "$end_time" }
-    }
-  },
-  {
-    $sort: {
-      start_year: 1,
-      person_id: 1
-    }
-  }]);
+db.getCollection('person').aggregate(
+  [
+    { $unwind: '$employee.employment' },
+    {
+      $match: {
+        'employee.employment.start_time': {
+          $gte: ISODate(
+            '2020-01-01T00:00:00.000Z'
+          ),
+          $lte: ISODate(
+            '2022-12-31T23:59:59.000Z'
+          )
+        }
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        occupation_name:
+          '$employee.employment.occupation_code',
+        start_year: {
+          $year: '$employee.employment.start_time'
+        },
+        end_year: {
+          $year: '$employee.employment.end_time'
+        }
+      }
+    },
+    { $sort: { start_year: 1, _id: 1 } }
+  ]);
 
 //2_1
 db.person.find({
@@ -53,58 +51,40 @@ db.person.find({
 }, {
     _id: 1,
     surname: 1
-}).explain("executionStats");
+});
 
 //2_2
-db.employment.aggregate([
-  {
-    $match: {
-      occupation_code: 42,
-      start_time: ISODate(
-        "2023-03-11T18:32:51.062+00:00"
-      ),
-    },
-  },
-  {
-    $lookup: {
-      from: "person",
-      localField: "person_id",
-      foreignField: "_id",
-      as: "person",
-    },
-  },
-  {
-    $unwind: "$person",
-  },
-  {
-    $match: {
-      "person.e_mail":
-        "jnlpu_b07559ff04737ce21a10bb8a5438ac62@example.com",
-    },
-  },
-  {
-    $project: {
-      _id: 0,
-      end_time: 1,
-    },
-  },
-])
-
-//3_1
-db.person.aggregate([
+db.getCollection('person').aggregate(
+  [
     {
-      $lookup: {
-        from: 'country',
-        localField: 'country_code',
-        foreignField: 'country_code',
-        as: 'country'
+      $match: {
+        e_mail:
+          'bbsyi_691b8036185a3cef186bfadf34d5f14b@example.com'
       }
     },
-    { $unwind: '$country' },
+    { $unwind: '$employee.employment' },
+    {
+      $match: {
+        'employee.employment.occupation_code': 4,
+        'employee.employment.start_time': ISODate(
+          '2023-05-06T14:33:56.363Z'
+        )
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        end_time: '$employee.employment.end_time'
+      }
+    }
+  ]);
+
+//3_1
+db.getCollection('person').aggregate(
+  [
     {
       $group: {
         _id: '$country_code',
-        country_name: { $first: '$country.name' },
         person_count: { $sum: 1 },
         avg_age_days: {
           $avg: {
@@ -121,21 +101,37 @@ db.person.aggregate([
         }
       }
     },
-    { $sort: { _id: 1 } }
-])
-
-//3_2
-db.employment.aggregate([
     {
-      $match: {
-        start_time: { $exists: true },
-        end_time: { $exists: true }
+      $lookup: {
+        from: 'country',
+        localField: '_id',
+        foreignField: 'country_code',
+        as: 'country_info'
       }
     },
     {
+      $project: {
+        _id: 0,
+        country_code: '$_id',
+        country_name: {
+          $arrayElemAt: ['$country_info.name', 0]
+        },
+        person_count: 1,
+        avg_age_days: 1
+      }
+    },
+    { $sort: { country_code: 1 } }
+  ]);
+
+//3_2
+db.getCollection('person').aggregate(
+  [
+    { $unwind: '$employee.employment' },
+    {
       $lookup: {
         from: 'occupation',
-        localField: 'occupation_code',
+        localField:
+          'employee.employment.occupation_code',
         foreignField: 'occupation_code',
         as: 'occupation'
       }
@@ -143,192 +139,177 @@ db.employment.aggregate([
     { $unwind: '$occupation' },
     {
       $group: {
-        _id: '$occupation_code',
+        _id: '$employee.employment.occupation_code',
         occupation_name: {
           $first: '$occupation.name'
         },
         employment_count: { $sum: 1 },
         avg_duration_days: {
           $avg: {
-            $divide: [
-              {
-                $subtract: [
-                  '$end_time',
-                  '$start_time'
-                ]
-              },
-              86400000
+            $subtract: [
+              '$employee.employment.end_time',
+              '$employee.employment.start_time'
             ]
           }
         }
       }
     },
-    { $sort: { _id: 1 } }
-])
+    {
+      $project: {
+        _id: 0,
+        occupation_code: '$_id',
+        occupation_name: 1,
+        employment_count: 1,
+        avg_duration_days: {
+          $divide: [
+            '$avg_duration_days',
+            86400000
+          ]
+        }
+      }
+    }
+  ]);
 
 //3_3
-
-db.person.aggregate([
-  {
-    $lookup: {
-      from: "employment",
-      localField: "_id",
-      foreignField: "person_id",
-      as: "employments"
+db.getCollection('person').aggregate(
+  [
+    {
+      $project: {
+        _id: 1,
+        e_mail: 1,
+        employment_count: {
+          $cond: {
+            if: {
+              $isArray: '$employee.employment'
+            },
+            then: {
+              $size: '$employee.employment'
+            },
+            else: '0'
+          }
+        }
+      }
     }
-  },
-  {
-    $project: {
-      _id: 1,
-      e_mail: 1,
-      employment_count: { $size: "$employments" }
-    }
-  }
-]);
+  ]);
 
 //4_1
-db.person.aggregate([
-  {
-    $lookup: {
-      from: "employee",
-      localField: "_id",
-      foreignField: "person_id",
-      as: "employee",
+db.getCollection('person').aggregate(
+  [
+    { $match: { employee: { $ne: null } } },
+    {
+      $lookup: {
+        from: 'employee_status_type',
+        localField:
+          'employee.employee_status_type_code',
+        foreignField: 'employee_status_type_code',
+        as: 'employee_status_info'
+      }
     },
-  },
-  {
-    $match: {
-      employee: {
-        $ne: [],
-      },
-    },
-  },
-  {
-    $lookup: {
-      from: "employee_status_type",
-      localField:
-        "employee.employee_status_type_code",
-      foreignField: "employee_status_type_code",
-      as: "employee_status",
-    },
-  },
-  {
-    $lookup: {
-      from: "employment",
-      localField: "_id",
-      foreignField: "person_id",
-      as: "employments",
-    },
-  },
-  {
-    $project: {
-      e_mail: 1,
-      surname: 1,
-      "employee_status.name": 1,
-      employments: 1,
-    },
-  },
-]);
+    {
+      $project: {
+        _id: 0,
+        e_mail: 1,
+        surname: 1,
+        employee_status_type_name: {
+          $arrayElemAt: [
+            '$employee_status_info.name',
+            0
+          ]
+        },
+        employments: '$employee.employment'
+      }
+    }
+  ]);
 
 //4_2
 
-db.employment.aggregate([
-  {
-    $lookup: {
-      from: "occupation",
-      localField: "occupation_code",
-      foreignField: "occupation_code",
-      as: "occupation"
+db.getCollection('person').aggregate(
+  [
+    { $unwind: '$employee.employment' },
+    {
+      $lookup: {
+        from: 'occupation',
+        localField:
+          'employee.employment.occupation_code',
+        foreignField: 'occupation_code',
+        as: 'occupation_info'
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        start_time:
+          '$employee.employment.start_time',
+        end_time: '$employee.employment.end_time',
+        occupation_name: {
+          $arrayElemAt: [
+            '$occupation_info.name',
+            0
+          ]
+        },
+        e_mail: 1,
+        surname: 1
+      }
     }
-  },
-  {
-    $lookup: {
-      from: "person",
-      localField: "person_id",
-      foreignField: "_id",
-      as: "person"
-    }
-  },
-  {
-    $project: {
-      start_time: 1,
-      end_time: 1,
-      "occupation.name": 1,
-      "person.e_mail": 1,
-      "person.surname": 1
-    }
-  }
-]);
+  ]);
 
 //5_1
-
-db.person.aggregate([
-  {
-        $lookup: {
-            from: "employee",
-            localField: "_id",
-            foreignField: "person_id",
-            as: "employee"
+db.getCollection('person').aggregate(
+  [
+    {
+      $lookup: {
+        from: 'employee_status_type',
+        localField:
+          'employee.employee_status_type_code',
+        foreignField: 'employee_status_type_code',
+        as: 'employee_status'
+      }
+    },
+    {
+      $lookup: {
+        from: 'person',
+        localField: 'employee.mentor_id',
+        foreignField: '_id',
+        as: 'mentor'
+      }
+    },
+    { $unwind: '$mentor' },
+    {
+      $lookup: {
+        from: 'employee_status_type',
+        localField:
+          'mentor.employee.employee_status_type_code',
+        foreignField: 'employee_status_type_code',
+        as: 'mentor_status'
+      }
+    },
+    {
+      $match: {
+        $expr: {
+          $ne: [
+            '$employee.employee_status_type_code',
+            '$mentor.employee.employee_status_type_code'
+          ]
         }
+      }
     },
     {
-        $unwind: "$employee"
-    },
-    {
-        $lookup: {
-            from: "employee_status_type",
-            localField: "employee.employee_status_type_code",
-            foreignField: "employee_status_type_code",
-            as: "employee_status"
+      $project: {
+        _id: 0,
+        employee_email: '$e_mail',
+        employee_status: {
+          $arrayElemAt: [
+            '$employee_status.name',
+            0
+          ]
+        },
+        mentor_email: '$mentor.e_mail',
+        mentor_status: {
+          $arrayElemAt: ['$mentor_status.name', 0]
         }
-    },
-    {
-        $lookup: {
-            from: "person",
-            localField: "employee.mentor_id",
-            foreignField: "_id",
-            as: "mentor"
-        }
-    },
-    {
-        $unwind: "$mentor"
-    },
-    {
-        $lookup: {
-            from: "employee",
-            localField: "mentor._id",
-            foreignField: "person_id",
-            as: "mentor_employee"
-        }
-    },
-    {
-        $unwind: "$mentor_employee"
-    },
-    {
-        $lookup: {
-            from: "employee_status_type",
-            localField: "mentor_employee.employee_status_type_code",
-            foreignField: "employee_status_type_code",
-            as: "mentor_status"
-        }
-    },
-    {
-        $match: {
-            $expr: {
-                $ne: ["$employee.employee_status_type_code", "$mentor_employee.employee_status_type_code"]
-            }
-        }
-    },
-    {
-        $project: {
-          _id: 0,
-            employee_email: "$e_mail",
-            employee_status: { $arrayElemAt: ["$employee_status.name", 0] },
-            mentor_email: "$mentor.e_mail",
-            mentor_status: { $arrayElemAt: ["$mentor_status.name", 0] }
-        }
+      }
     }
-])
+  ]);
 
 //6_1
 db.person.insertOne({
