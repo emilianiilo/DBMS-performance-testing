@@ -27,11 +27,11 @@ WHERE (data ->> 'e_mail') = 'acscu_ed69216fed359e36bd52421c86d40902@example.com'
 --S2_2
 SELECT (employee.value ->> 'end_time') AS end_time
 FROM hierarchical.person p, jsonb_array_elements(p.employee -> 'employment') employee
-WHERE (p.data ->> 'e_mail') = 'jnlpu_b07559ff04737ce21a10bb8a5438ac62@example.com'
-AND (employee.value ->> 'occupation_code')::int = 42
-AND (employee.value ->> 'start_time') = '2023-03-11T20:32:51.062824';
+WHERE (p.data ->> 'e_mail') = 'bbsyi_691b8036185a3cef186bfadf34d5f14b@example.com'
+AND (employee.value ->> 'occupation_code')::int = 4
+AND (employee.value ->> 'start_time') = '2023-05-06T14:33:56.363994';
 
---S3_1
+--S3_1 
 SELECT c.country_code AS country_code,
  		(c.data ->> 'name') AS country_name,
        COUNT(p._id) AS person_count,
@@ -40,7 +40,7 @@ FROM hierarchical.person p
 RIGHT JOIN hierarchical.country c ON c.country_code = p.country_code
 GROUP BY c.country_code;
 
---S3_2
+--S3_2 
 SELECT 
     o.occupation_code, 
     (o.data ->> 'name') AS occupation_name, 
@@ -53,6 +53,7 @@ LEFT JOIN LATERAL
      FROM hierarchical.person p) sub ON o.occupation_code = (sub.employee ->> 'occupation_code')::int
 GROUP BY 
     o.occupation_code, (o.data ->> 'name');
+
 
 --S3_3
 SELECT p._id, (p.data ->> 'e_mail') AS e_mail, COUNT(employee.value ->> 'start_time') AS employment_count
@@ -71,7 +72,7 @@ SELECT (employee.value ->> 'start_time') AS start_time, (employee.value ->> 'end
 FROM hierarchical.person p, jsonb_array_elements(p.employee -> 'employment') employee
 JOIN hierarchical.occupation o ON (employee ->> 'occupation_code')::int = o.occupation_code;
 
---S5_1
+--S5_1 
 SELECT (p.data ->> 'e_mail') AS employee_email, (est.data ->> 'name') AS employee_status, (p_ment.data ->> 'e_mail')
 AS mentor_email, (mest.data ->> 'name') AS mentor_status
 FROM hierarchical.person p
@@ -97,7 +98,7 @@ UPDATE hierarchical.person
 SET data = jsonb_set(data, '{tel_nr}', '"+1 566666"')
 WHERE (data ->> 'e_mail') = 'example@example.com';
 
---7_2
+--7_2 
 UPDATE hierarchical.person p
 SET employee = jsonb_set(
     p.employee, 
@@ -124,7 +125,7 @@ WHERE EXISTS (
     FROM jsonb_array_elements(p.employee -> 'employment') employee
     WHERE (employee.value ->> 'occupation_code')::int BETWEEN 10 AND 30);
 
---8_2
+--8_2 
 UPDATE hierarchical.person p
 SET employee = jsonb_set(
     p.employee, 
@@ -142,12 +143,12 @@ WHERE person_status_type_code IN (1, 2) AND country_code = 'EST';
 DELETE FROM hierarchical.person
 WHERE (data ->> 'e_mail') = 'example@example.com';
 
---9_2
+--9_2 
 WITH to_delete AS (
     SELECT p._id
     FROM hierarchical.person p, jsonb_array_elements(p.employee -> 'employment') employee 
-    WHERE (employee.value ->> 'occupation_code')::int = 27 
-    AND (employee.value ->> 'start_time') = '2022-03-11T20:32:51.062824'
+    WHERE (employee.value ->> 'occupation_code')::int = 4 
+    AND (employee.value ->> 'start_time') = '2024-05-06T14:33:56.363994'
     AND (p.data ->> 'e_mail') = 'bbsyi_691b8036185a3cef186bfadf34d5f14b@example.com'
 )
 DELETE FROM hierarchical.person 
@@ -161,7 +162,7 @@ WHERE EXISTS (
     WHERE (employee.value ->> 'occupation_code')::int BETWEEN 10 AND 30);
 
 
---10_2 (var1)
+--10_2 
 UPDATE hierarchical.person p
 SET employee = jsonb_set(
     p.employee, 
@@ -177,8 +178,3 @@ SET employee = jsonb_set(
     )
 )
 WHERE p.person_status_type_code IN (1, 2) AND p.country_code = 'EST';
-
---10_2 (var2)
-DELETE FROM hierarchical.person p
-WHERE person_status_type_code IN (1, 2) 
-AND country_code = 'EST';
