@@ -4,7 +4,7 @@ FROM non_hierarchical.person
 WHERE (data ->> 'birth_date') BETWEEN '1940-01-01' AND '1980-12-31'
 ORDER BY EXTRACT(YEAR FROM (data ->> 'birth_date')::date), (data ->> 'e_mail');
 
---S1_2
+--S1_2 
 SELECT e.person_id, (o.data ->> 'name') AS occupation_name,
 EXTRACT(YEAR FROM (e.data ->> 'start_time')::date) AS start_year,
 EXTRACT(YEAR FROM (e.data ->> 'end_time')::date) AS end_year
@@ -19,14 +19,14 @@ SELECT _id, (data ->> 'surname') AS surname
 FROM non_hierarchical.person
 WHERE (data ->> 'e_mail') = 'acscu_ed69216fed359e36bd52421c86d40902@example.com';
 
---S2_2
+--S2_2 
 SELECT (e.data ->> 'end_time') AS end_time
 FROM non_hierarchical.employment e
 JOIN non_hierarchical.person p ON e.person_id = p._id
-WHERE (p.data ->> 'e_mail') = 'jnlpu_b07559ff04737ce21a10bb8a5438ac62@example.com' AND e.occupation_code = 42
-AND (e.data ->> 'start_time') = '2023-03-11T20:32:51.062824';
+WHERE (p.data ->> 'e_mail') = 'bbsyi_691b8036185a3cef186bfadf34d5f14b@example.com' AND e.occupation_code = 4
+AND (e.data ->> 'start_time') = '2023-05-06T14:33:56.363994';
 
---S3_1
+--S3_1 
 SELECT c.country_code AS country_code,
  		(c.data ->> 'name') AS country_name,
        COUNT(_id) AS person_count,
@@ -35,7 +35,7 @@ FROM non_hierarchical.person p
 RIGHT JOIN non_hierarchical.country c ON c.country_code = p.country_code
 GROUP BY c.country_code;
 
---S3_2
+--S3_2 
 SELECT o.occupation_code, (o.data ->> 'name') AS occupation_name, COUNT(e.person_id) AS employment_count,
 AVG((e.data ->> 'end_time')::date - (e.data ->> 'start_time')::date) AS avg_duration_days
 FROM non_hierarchical.occupation o
@@ -64,7 +64,7 @@ JOIN non_hierarchical.occupation o ON e.occupation_code = o.occupation_code
 JOIN non_hierarchical.person p ON e.person_id = p._id;
 
 
---S5_1
+--S5_1 
 SELECT (p.data ->> 'e_mail') AS employee_email, (est.data ->> 'name') AS employee_status, 
 (p_ment.data ->> 'e_mail') AS mentor_email, (mest.data ->> 'name') AS mentor_status
 FROM non_hierarchical.employee emp
@@ -93,7 +93,7 @@ UPDATE non_hierarchical.person
 SET data = jsonb_set(data, '{tel_nr}', '"+1 566666"')
 WHERE data ->> 'e_mail' = 'example@example.com';
 
---S7_2
+--S7_2 
 UPDATE non_hierarchical.employment
 SET data = jsonb_set(data, '{end_time}', '"2024-04-20"')
 WHERE person_id = (SELECT _id FROM non_hierarchical.person
@@ -107,8 +107,7 @@ WHERE _id IN (SELECT person_id FROM non_hierarchical.employment
 WHERE occupation_code BETWEEN 10 AND 30);
 
 
---S8_2
-EXPLAIN ANALYZE
+--S8_2 
 UPDATE non_hierarchical.employment
 SET data = jsonb_set(data, '{end_time}', 'null')
 WHERE person_id
@@ -123,9 +122,8 @@ WHERE data ->> 'e_mail' = 'example@example.com';
 --S9_2
 DELETE FROM non_hierarchical.employment
 WHERE person_id = (SELECT _id FROM non_hierarchical.person
-WHERE data ->> 'e_mail' = 'bbsyi_691b8036185a3cef186bfadf34d5f14b@example.com') AND occupation_code = 27
-AND data ->> 'start_time' = '2022-03-11T20:32:51.062824';
-
+WHERE data ->> 'e_mail' = 'bbsyi_691b8036185a3cef186bfadf34d5f14b@example.com') AND occupation_code = 4
+AND data ->> 'start_time' = '2023-05-06T14:33:56.363994';
 
 --S10_1
 DELETE FROM non_hierarchical.person
