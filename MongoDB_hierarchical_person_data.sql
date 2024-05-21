@@ -1,6 +1,5 @@
 SELECT
-   _id,
-	nat_id_code,
+   _id, nat_id_code,
     country_code,
     person_status_type_code,
     e_mail,
