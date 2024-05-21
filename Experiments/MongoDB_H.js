@@ -330,7 +330,7 @@ db.person.insertOne({
         mentor_id: 4673567,
         employment: []
     }
-})
+});
 
 //6_2
 db.person.updateOne(
@@ -343,14 +343,14 @@ db.person.updateOne(
             }
         }
     }
-)
+);
 
 //7_1
 
 db.person.updateOne(
     { e_mail: "example@example.com" },
     { $set: { tel_nr: "+1 566666" } }
-)
+);
 
 //7_2
 db.person.updateOne(
@@ -364,57 +364,55 @@ db.person.updateOne(
         }
     },
     { $set: { "employee.employment.$.end_time": new Date("2024-03-20") } }
-)
+);
 
-//8_1 vol1
+//8_1 
 db.person.updateMany(
     { "employee.employment.occupation_code": { $gte: 10, $lte: 30 } },
     { $set: { address: null } }
-)
+);
 
-//8_1 vol2
+//8_2 
 db.person.updateMany(
-    { "employee.employment.occupation_code": { $gte: 10, $lte: 30 } },
-    { $set: { address: "Random 123" } }
-)
-
-//8_2
-db.person.updateMany(
-    {
-        country_code: "EST",
-        "employee.employee_status_type_code": { $in: [1, 2] }
+  {
+    employee: {
+      $ne: null,
     },
-    { $set: { "employee.employment.$[].end_time": null } }
-)
+    country_code: "EST",
+    person_status_type_code:{ $in: [1, 2] }
+  },
+  { $set: { "employee.employment.$[].end_time": null } }
+);
 
 //9_1
 db.person.deleteOne({ e_mail: "example@example.com" })
 
-//9_2
+//9_2 
 db.person.updateOne(
-    {"e_mail": "bbsyi_691b8036185a3cef186bfadf34d5f14b@example.com"},
-    {
-        "$pull": {
-            "employee.employment": {
-                "occupation_code": 27,
-                "start_time": ISODate("2022-03-11T20:32:51.062Z")
-            }
-        }
-    }
-)
+  {"e_mail": "bbsyi_691b8036185a3cef186bfadf34d5f14b@example.com"},
+  {
+      "$pull": {
+          "employee.employment": {
+              "occupation_code": 4,
+              "start_time": ISODate("2023-05-06T14:33:56.363+00:00")
+          }
+      }
+  }
+);
+
 
 //10_1
-db.person.deleteMany({ "employee.employment.occupation_code": { $gte: 10, $lte: 30 } })
+db.person.deleteMany({ "employee.employment.occupation_code": { $gte: 10, $lte: 30 } });
 
-
-
-//10_2
+//10_2 
 db.person.updateMany(
-    {
-        country_code: "EST",
-        "employee.employee_status_type_code": { $in: [1, 2] }
+  {
+    employee: {
+      $ne: null,
     },
-    { $set: { "employee.employment": [] } }
-)
-
+    country_code: "EST",
+    person_status_type_code:{ $in: [1, 2] }
+  },
+  { $set: { "employee.employment": [] } }
+);
 
