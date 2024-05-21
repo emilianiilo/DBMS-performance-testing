@@ -16,14 +16,14 @@ ORDER BY EXTRACT(YEAR FROM e.start_time), e.person_id;
 --S2_1
 SELECT _id, surname
 FROM traditional.person
-WHERE e_mail = 'acscu_ed69216fed359e36bd52421c86d40902@example.com';
+WHERE e_mail = 'acscu_ed69216fed359e36bd52421c86d40902@example.com'; -- lower juurde kas siis indeksit kasutatakse
 
 --S2_2
 SELECT e.end_time
 FROM traditional.employment e
 JOIN traditional.person p ON e.person_id = p._id
-WHERE p.e_mail = 'jnlpu_b07559ff04737ce21a10bb8a5438ac62@example.com' AND e.occupation_code = 42
-AND e.start_time = '2023-03-11 20:32:51.062824';
+WHERE p.e_mail = 'bbsyi_691b8036185a3cef186bfadf34d5f14b@example.com' AND e.occupation_code = 4
+AND e.start_time = '2023-05-06 14:33:56.363994';
 
 --S3_1
 SELECT c.country_code AS country_code,
@@ -72,7 +72,7 @@ LEFT JOIN traditional.person p_ment ON ment.person_id = p_ment._id
 LEFT JOIN traditional.employee_status_type mest ON ment.employee_status_type_code = mest.employee_status_type_code
 WHERE emp.employee_status_type_code <> ment.employee_status_type_code;
 
---S6_1
+--S6_1 
 INSERT INTO traditional.person (_id,nat_id_code, country_code, person_status_type_code, 
 e_mail, birth_date, given_name, surname, address, tel_nr)
 VALUES (5,1234567, 'USA', 3, 'example@example.com', 
@@ -80,7 +80,7 @@ VALUES (5,1234567, 'USA', 3, 'example@example.com',
 INSERT INTO traditional.employee (person_id, mentor_id, employee_status_type_code)
 VALUES (5, 4673567, 2);
 
---S6_2
+--S6_2 
 INSERT INTO traditional.employment (person_id, occupation_code, start_time)
 VALUES (5, 1, '2024-01-01');
 
@@ -117,8 +117,8 @@ WHERE e_mail = 'example@example.com';
 --S9_2
 DELETE FROM traditional.employment
 WHERE person_id = (SELECT _id FROM traditional.person 
-WHERE e_mail = 'bbsyi_691b8036185a3cef186bfadf34d5f14b@example.com') AND occupation_code = 27 
-AND start_time = '2022-03-11 20:32:51.062824';
+WHERE e_mail = 'bbsyi_691b8036185a3cef186bfadf34d5f14b@example.com') AND occupation_code = 4 
+AND start_time = '2023-05-06 14:33:56.363994';
 
 --S10_1
 DELETE FROM traditional.person
