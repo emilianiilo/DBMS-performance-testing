@@ -21,26 +21,7 @@ FROM (
         LIMIT 1
     ) AS e2
     WHERE e.mentor_id IS NULL
-    LIMIT 100
-) AS subquery
-WHERE e.person_id = subquery.emp_id;
-
-
-UPDATE traditional.employee AS e
-SET mentor_id = subquery.sub_mentor_id
-FROM (
-    SELECT e.person_id AS emp_id,
-           e2.person_id AS sub_mentor_id
-    FROM traditional.employee AS e
-    CROSS JOIN LATERAL (
-        SELECT e2.person_id
-        FROM traditional.employee AS e2
-        WHERE e2.person_id <> e.person_id
-        ORDER BY RANDOM()
-        LIMIT 1
-    ) AS e2
-    WHERE e.mentor_id IS NULL
-    LIMIT 40000
+    LIMIT 10000 -- This set of mentor_id fields will be updated, if you need to update all the mentor_id fields you will need to run the query several times. 
 ) AS subquery
 WHERE e.person_id = subquery.emp_id;
 
